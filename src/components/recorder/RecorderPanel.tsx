@@ -1,0 +1,80 @@
+'use client';
+
+import { useState, useRef } from 'react';
+import { Mic, Square, Play, Circle } from 'lucide-react';
+import Button from '@/components/ui/Button';
+
+export default function RecorderPanel() {
+  const [isRecording, setIsRecording] = useState(false);
+  const [audioUrl, setAudioUrl] = useState<string | null>(null);
+
+  const mediaRecorder = useRef<MediaRecorder | null>(null);
+  const audioChunks = useRef<Blob[]>([]);
+
+  const startRecording = async () => {
+    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+    mediaRecorder.current = new MediaRecorder(stream);
+    mediaRecorder.current.start();
+    setIsRecording(true);
+
+    mediaRecorder.current.ondataavailable = (event) => {
+      audioChunks.current.push(event.data);
+    };
+
+    mediaRecorder.current.onstop = () => {
+      const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
+      const url = URL.createObjectURL(audioBlob);
+      setAudioUrl(url);
+      audioChunks.current = [];
+    };
+  };
+  const stopRecording = () => {
+    mediaRecorder.current?.stop();
+    setIsRecording(false);
+  };
+
+  return (
+    <div className="border-secondary flex flex-col items-center rounded-2xl border-2 p-4 shadow-xl">
+      <div className="mb-2">
+        {isRecording ? (
+          <div className="flex animate-pulse items-center gap-2 text-red-500">
+            <div className="h-3 w-3 rounded-full bg-red-500" />
+            <span className="text-sm font-bold tracking-wider uppercase">
+              Recording...
+            </span>
+          </div>
+        ) : (
+          <span className="text-sm text-gray-400">Ready to record</span>
+        )}
+      </div>
+
+      <div className="flex w-full items-center justify-end gap-4">
+        {audioUrl && (
+          <div className="w-full">
+            <p className="mb-2 text-xs text-gray-500">
+              Preview last recording:
+            </p>
+            <audio src={audioUrl} controls className="h-10 w-full" />
+          </div>
+        )}
+        {!isRecording ? (
+          <Button
+            onClick={startRecording}
+            className="flex h-16 w-16 items-center rounded-full"
+          >
+            <Mic size={28} />
+          </Button>
+        ) : (
+          <Button
+            onClick={stopRecording}
+            variant="secondary"
+            className="flex h-16 w-16 items-center rounded-full border-red-500 text-red-500"
+          >
+            <Circle size={28} />
+          </Button>
+        )}
+      </div>
+    </div>
+  );
+}

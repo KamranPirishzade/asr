@@ -1,15 +1,15 @@
-import type { Metadata } from "next";
-import "./globals.css";
-import { Inter } from "next/font/google";
-import { DesignProvider } from "@/components/layout/DesignProvider";
+import type { Metadata } from 'next';
+import './globals.css';
+import { Inter } from 'next/font/google';
+import { DesignProvider } from '@/components/layout/DesignProvider';
 
 export const metadata: Metadata = {
-  title: "Brain ASR",
-  description: "ASR website",
+  title: 'Brain ASR',
+  description: 'ASR website',
 };
 
 const inter = Inter({
-  subsets: ["latin"],
+  subsets: ['latin'],
 });
 
 export default function RootLayout({
@@ -19,7 +19,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} antialiased bg-[#F7F6F0]`}>
+      <body className={`${inter.className} bg-[] antialiased`}>
         <DesignProvider>{children}</DesignProvider>
       </body>
     </html>

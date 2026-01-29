@@ -22,7 +22,7 @@ export default function Button({
 
   const variantStyles =
     variant === "primary"
-      ? "bg-[#004B51] text-white hover:brightness-90"
+      ? "bg-secondary text-white hover:brightness-90"
       : "bg-gray-200 text-gray-800 hover:brightness-90";
 
   return (
