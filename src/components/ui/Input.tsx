@@ -6,11 +6,13 @@ import { getThemeClasses } from '@/lib/design/theme';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: 'primary' | 'secondary';
+  scale?: 'normal' | 'small';
 }
 
 export default function Input({
   variant = 'primary',
   className,
+  scale = 'normal',
   ...props
 }: InputProps) {
   const { keywords } = useDesign();
@@ -18,7 +20,7 @@ export default function Input({
 
   const baseStyles =
     'outline-none ring-0 focus:ring-1 ring-secondary transition-all duration-300';
-  const themeStyles = `${theme.input.padding} ${theme.input.radius} ${theme.input.border}`;
+  const themeStyles = `${theme.input.padding} ${theme.input.radius}  ${theme.input.border}`;
 
   const variantStyles =
     variant === 'primary'
@@ -27,7 +29,7 @@ export default function Input({
 
   return (
     <input
-      className={`${baseStyles} ${themeStyles} ${variantStyles} ${className}`}
+      className={`${baseStyles} ${themeStyles} ${variantStyles} ${className} ${scale === 'small' ? 'px-2! py-1!' : ''}`}
       {...props}
     />
   );

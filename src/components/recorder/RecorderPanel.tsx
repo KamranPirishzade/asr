@@ -9,6 +9,7 @@ import { useTranscriber } from '@/hooks/useTranscriber';
 export default function RecorderPanel() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [buffer, setBuffer] = useState<AudioBuffer>();
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
@@ -22,26 +23,34 @@ export default function RecorderPanel() {
     output,
   } = useTranscriber();
   const startRecording = async () => {
-    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      mediaRecorder.current = new MediaRecorder(stream);
+      mediaRecorder.current.start();
+      setIsRecording(true);
 
-    mediaRecorder.current = new MediaRecorder(stream);
-    mediaRecorder.current.start();
-    setIsRecording(true);
+      mediaRecorder.current.ondataavailable = (event) => {
+        audioChunks.current.push(event.data);
+      };
 
-    mediaRecorder.current.ondataavailable = (event) => {
-      audioChunks.current.push(event.data);
-    };
-
-    mediaRecorder.current.onstop = async () => {
-      const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
-      const url = URL.createObjectURL(audioBlob);
-      const arrayBuffer = await audioBlob.arrayBuffer();
-      const audioContext = new AudioContext({ sampleRate: 16000 });
-      const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
-      setAudioUrl(url);
-      start(audioBuffer);
-      audioChunks.current = [];
-    };
+      mediaRecorder.current.onstop = async () => {
+        const audioBlob = new Blob(audioChunks.current, { type: 'audio/wav' });
+        const url = URL.createObjectURL(audioBlob);
+        const arrayBuffer = await audioBlob.arrayBuffer();
+        const audioContext = new AudioContext({ sampleRate: 16000 });
+        const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
+        setBuffer(audioBuffer);
+        setAudioUrl(url);
+        start(audioBuffer);
+        audioChunks.current = [];
+      };
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.name === 'NotAllowedError') {
+          alert('Please enable the mic');
+        }
+      }
+    }
   };
   const stopRecording = () => {
     mediaRecorder.current?.stop();
@@ -87,9 +96,9 @@ export default function RecorderPanel() {
           <Button
             onClick={stopRecording}
             variant="secondary"
-            className="flex h-16 w-16 items-center rounded-full border-red-500 text-red-500"
+            className="grid h-16 w-16 place-content-center rounded-full border-red-500 text-red-500"
           >
-            <Circle size={28} />
+            <div className="h-6 w-6 shrink-0 animate-pulse rounded-full bg-red-500"></div>
           </Button>
         )}
       </div>
@@ -106,6 +115,7 @@ export default function RecorderPanel() {
           text={output.text}
           isProcessing={isProcessing}
           onClear={onInputChange}
+          start={() => start(buffer)}
         />
       ) : (
         ''
