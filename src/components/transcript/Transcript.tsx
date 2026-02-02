@@ -1,6 +1,6 @@
 'use client';
 
-import { Copy, Check, Trash2, SkipBack, SendHorizonal } from 'lucide-react';
+import { Copy, Check, SkipBack, SendHorizonal } from 'lucide-react';
 import { useState, useRef } from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -8,11 +8,10 @@ import { useRecordingsContext } from '@/providers/RecordingsContext';
 
 interface Props {
   text: string;
-  start: () => void;
   blob: Blob;
 }
 
-export default function Transcript({ text, blob, start }: Props) {
+export default function Transcript({ text, blob }: Props) {
   const [copied, setCopied] = useState(false);
   const transcript = useRef<HTMLTextAreaElement>(null);
   const [editableText, setEditableText] = useState('');
@@ -32,7 +31,7 @@ export default function Transcript({ text, blob, start }: Props) {
   }
 
   function handleSave() {
-    saveRecording(blob, text, labelRef.current?.value);
+    saveRecording(blob, editableText, labelRef.current?.value);
     refresh();
   }
 

@@ -6,6 +6,8 @@ import { LogOut, EyeClosed, Eye } from 'lucide-react';
 import { useRecordingsContext } from '@/providers/RecordingsContext';
 import { useState } from 'react';
 import { cn } from '@/lib/utils';
+import Link from 'next/link';
+import Loading from '../ui/Loading';
 export default function AppNav() {
   const { recordings, isLoading } = useRecordingsContext();
   const [open, setOpen] = useState(false);
@@ -13,9 +15,6 @@ export default function AppNav() {
   const handleNav = () => {
     setOpen((pre) => !pre);
   };
-  // if (!open) {
-  //   return;
-  // }
 
   return (
     <nav
@@ -48,14 +47,17 @@ export default function AppNav() {
       <div className="mb-4 overflow-y-auto pr-2">
         <h2 className="mb-2 text-lg">Recordings</h2>
         <div className="grid gap-3">
-          {isLoading ? <p>Loading...</p> : ''}
+          {isLoading ? <Loading /> : ''}
           {recordings.map((recording) => (
-            <div
+            <Link
               key={recording.id}
-              className="text-secondary cursor-pointer truncate rounded-xl border-b-2 p-1 text-ellipsis transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md"
+              className="truncate"
+              href={`/${recording.id}`}
             >
-              {recording.label}
-            </div>
+              <div className="text-secondary cursor-pointer truncate rounded-xl border-b-2 p-1 text-ellipsis transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
+                {recording.label}
+              </div>
+            </Link>
           ))}
         </div>
       </div>

@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Mic } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import { useTranscriber } from '@/hooks/useTranscriber';
-import Transcript from './Transcriptx';
+import Transcript from '../transcript/Transcript';
 
 export default function ManualRecorder() {
   const [isRecording, setIsRecording] = useState(false);
@@ -15,7 +15,7 @@ export default function ManualRecorder() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
-  const { start, output } = useTranscriber();
+  const { start } = useTranscriber();
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -94,11 +94,7 @@ export default function ManualRecorder() {
           </Button>
         )}
       </div>
-      {audioUrl && blob ? (
-        <Transcript text="" blob={blob} start={() => start(buffer)} />
-      ) : (
-        ''
-      )}
+      {audioUrl && blob ? <Transcript text="" blob={blob} /> : ''}
     </div>
   );
 }

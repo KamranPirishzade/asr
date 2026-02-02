@@ -1,13 +1,6 @@
 'use client';
 
-import {
-  Copy,
-  Check,
-  Trash2,
-  SkipBack,
-  RotateCcw,
-  SendHorizonal,
-} from 'lucide-react';
+import { Copy, Check, Trash2, SkipBack, SendHorizonal } from 'lucide-react';
 import { useState, useRef } from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
@@ -25,7 +18,6 @@ export default function TranscriptResult({
   isProcessing,
   text,
   onClear,
-  start,
   blob,
 }: Props) {
   const [copied, setCopied] = useState(false);
@@ -47,7 +39,7 @@ export default function TranscriptResult({
   }
 
   function handleSave() {
-    saveRecording(blob, text, labelRef.current?.value);
+    saveRecording(blob, editableText, labelRef.current?.value);
     refresh();
   }
 

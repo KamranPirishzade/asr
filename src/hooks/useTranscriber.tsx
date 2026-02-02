@@ -16,7 +16,7 @@ export function useTranscriber() {
       case 'update':
         break;
       case 'complete':
-        setOutput(message.output);
+        setOutput(message.output.text);
         setIsProcessing(false);
         break;
       case 'ready':

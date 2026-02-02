@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef } from 'react';
 import { Mic, RotateCcw } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import TranscriptResult from './TranscriptResult';
+import TranscriptResult from '../transcript/TranscriptResult';
 import { useTranscriber } from '@/hooks/useTranscriber';
-
 export default function RecorderPanel() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
@@ -51,10 +50,6 @@ export default function RecorderPanel() {
     mediaRecorder.current?.stop();
     setIsRecording(false);
   };
-
-  useEffect(() => {
-    console.log(output);
-  }, [output]);
 
   return (
     <div className="flex flex-col items-center rounded-2xl border border-gray-400 p-4 shadow-2xl">
@@ -106,7 +101,7 @@ export default function RecorderPanel() {
           </Button>
         )}
       </div>
-      <div className="mt-4 w-full">
+      <div className="w-full">
         {isProcessing && (
           <p className="text-secondary animate-pulse text-sm font-semibold">
             Model is transcribing...
@@ -116,7 +111,7 @@ export default function RecorderPanel() {
 
       {output && blob ? (
         <TranscriptResult
-          text={output.text}
+          text={output}
           isProcessing={isProcessing}
           onClear={onInputChange}
           start={() => start(buffer)}
