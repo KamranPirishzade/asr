@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Mic, RotateCcw } from 'lucide-react';
+import { Mic } from 'lucide-react';
 import Button from '@/components/ui/Button';
-import TranscriptResult from './TranscriptResult';
 import { useTranscriber } from '@/hooks/useTranscriber';
+import Transcript from './Transcriptx';
 
-export default function RecorderPanel() {
+export default function ManualRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
   const [buffer, setBuffer] = useState<AudioBuffer>();
@@ -15,7 +15,7 @@ export default function RecorderPanel() {
   const mediaRecorder = useRef<MediaRecorder | null>(null);
   const audioChunks = useRef<Blob[]>([]);
 
-  const { onInputChange, isProcessing, start, output } = useTranscriber();
+  const { start, output } = useTranscriber();
   const startRecording = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -52,10 +52,6 @@ export default function RecorderPanel() {
     setIsRecording(false);
   };
 
-  useEffect(() => {
-    console.log(output);
-  }, [output]);
-
   return (
     <div className="flex flex-col items-center rounded-2xl border border-gray-400 p-4 shadow-2xl">
       <div className="mb-2">
@@ -73,20 +69,12 @@ export default function RecorderPanel() {
 
       <div className="flex w-full items-center justify-end gap-4">
         {audioUrl && (
-          <>
-            <div className="w-full">
-              <p className="mb-2 text-xs text-gray-500">
-                Preview last recording:
-              </p>
-              <audio src={audioUrl} controls className="h-10 w-full" />
-            </div>
-            <Button
-              onClick={() => start(buffer)}
-              className="flex h-16 w-16 items-center rounded-full"
-            >
-              <RotateCcw size={28} />
-            </Button>
-          </>
+          <div className="w-full">
+            <p className="mb-2 text-xs text-gray-500">
+              Preview last recording:
+            </p>
+            <audio src={audioUrl} controls className="h-10 w-full" />
+          </div>
         )}
 
         {!isRecording ? (
@@ -106,22 +94,8 @@ export default function RecorderPanel() {
           </Button>
         )}
       </div>
-      <div className="mt-4 w-full">
-        {isProcessing && (
-          <p className="text-secondary animate-pulse text-sm font-semibold">
-            Model is transcribing...
-          </p>
-        )}
-      </div>
-
-      {output && blob ? (
-        <TranscriptResult
-          text={output.text}
-          isProcessing={isProcessing}
-          onClear={onInputChange}
-          start={() => start(buffer)}
-          blob={blob}
-        />
+      {audioUrl && blob ? (
+        <Transcript text="" blob={blob} start={() => start(buffer)} />
       ) : (
         ''
       )}

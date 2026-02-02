@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { Inter } from 'next/font/google';
 import { DesignProvider } from '@/components/layout/DesignProvider';
+import { RecordingsProvider } from '@/providers/RecordingsContext';
 
 export const metadata: Metadata = {
   title: 'Brain ASR',
@@ -19,8 +20,12 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${inter.className} bg-[] antialiased`}>
-        <DesignProvider>{children}</DesignProvider>
+      <body
+        className={`${inter.className} custom-scrollbar scroll-smooth antialiased`}
+      >
+        <DesignProvider>
+          <RecordingsProvider>{children}</RecordingsProvider>
+        </DesignProvider>
       </body>
     </html>
   );

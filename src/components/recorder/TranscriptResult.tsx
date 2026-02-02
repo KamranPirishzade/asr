@@ -11,12 +11,14 @@ import {
 import { useState, useRef } from 'react';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
+import { useRecordingsContext } from '@/providers/RecordingsContext';
 
 interface Props {
   text: string;
   isProcessing: boolean;
   onClear: () => void;
   start: () => void;
+  blob: Blob;
 }
 
 export default function TranscriptResult({
@@ -24,10 +26,13 @@ export default function TranscriptResult({
   text,
   onClear,
   start,
+  blob,
 }: Props) {
   const [copied, setCopied] = useState(false);
   const transcript = useRef<HTMLTextAreaElement>(null);
   const [editableText, setEditableText] = useState(text);
+  const { saveRecording, refresh } = useRecordingsContext();
+  const labelRef = useRef<HTMLInputElement | null>(null);
 
   async function handleCopy() {
     if (transcript.current) {
@@ -41,6 +46,11 @@ export default function TranscriptResult({
     }
   }
 
+  function handleSave() {
+    saveRecording(blob, text, labelRef.current?.value);
+    refresh();
+  }
+
   return (
     <div className="mt-6 w-full">
       <div className="mb-2 flex items-center justify-between">
@@ -48,17 +58,21 @@ export default function TranscriptResult({
           <div className="flex w-full items-end justify-end gap-2">
             <div className="mr-auto flex flex-1 place-items-center gap-2">
               Label:
-              <Input type="text" className="w-full" scale="small" />
-              <Button size="small" className="flex items-center gap-2">
+              <Input
+                type="text"
+                className="w-full"
+                scale="small"
+                ref={labelRef}
+              />
+              <Button
+                onClick={handleSave}
+                size="small"
+                className="flex items-center gap-2"
+              >
                 Send <SendHorizonal size={16} />
               </Button>
             </div>
-            <button
-              onClick={() => start()}
-              className="group relative rounded-md p-2 transition-colors hover:bg-gray-100"
-            >
-              <RotateCcw size={16} />
-            </button>
+
             <button
               onClick={() => setEditableText(text)}
               className="group relative rounded-md p-2 transition-colors hover:bg-gray-100"

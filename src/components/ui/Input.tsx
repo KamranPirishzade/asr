@@ -1,18 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { Ref } from 'react';
 import { useDesign } from '../layout/DesignProvider';
 import { getThemeClasses } from '@/lib/design/theme';
 
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: 'primary' | 'secondary';
   scale?: 'normal' | 'small';
+  ref: Ref<HTMLInputElement>;
 }
 
 export default function Input({
   variant = 'primary',
   className,
   scale = 'normal',
+  ref,
   ...props
 }: InputProps) {
   const { keywords } = useDesign();
@@ -29,6 +31,7 @@ export default function Input({
 
   return (
     <input
+      ref={ref}
       className={`${baseStyles} ${themeStyles} ${variantStyles} ${className} ${scale === 'small' ? 'px-2! py-1!' : ''}`}
       {...props}
     />
