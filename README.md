@@ -1,31 +1,54 @@
-AI Voice Transcriber (ASR)
-A high-performance, privacy-focused audio transcription web application that runs Machine Learning models directly in the browser. No audio data ever leaves your device.
+# 🎙️ AI-Powered Offline Transcriber (ASR)
 
-🚀 Key Features
-On-Device AI: Utilizes Whisper-tiny via Transformers.js for real-time transcription.
+A sophisticated, privacy-focused Automatic Speech Recognition (ASR) application built with **Next.js 15**. This app performs high-fidelity audio transcription directly in the browser using Machine Learning, ensuring that your voice data never leaves your computer.
 
-Privacy First: Zero server-side processing; all audio remains local.
 
-Multi-threaded Performance: Dedicated Web Workers handle heavy ML computation to keep the UI buttery smooth.
 
-Dynamic UI: A responsive, collapsible sidebar with real-time transcription status and audio previews.
+---
 
-🛠️ Tech Stack
-Framework: Next.js 15+ (App Router)
+## ✨ Key Features
 
-AI Library: Transformers.js (Hugging Face)
+- **On-Device Machine Learning**: Utilizes Hugging Face's `Whisper-tiny.en` model via **Transformers.js**.
+- **Privacy-Centric**: Audio is processed locally. No API keys, no servers, and no data tracking.
+- **Multithreaded Architecture**: Uses **Web Workers** to handle heavy ML computation, keeping the UI responsive at 60fps.
+- **Advanced Audio Processing**: Real-time decoding and conversion of stereo mic input to mono 16kHz PCM data.
+- **Modern UI/UX**: Built with Tailwind CSS, featuring a collapsible sidebar, real-time loading progress, and audio previews.
 
-State Management: React Hooks (useMemo, useCallback, useRef)
+---
 
-Styling: Tailwind CSS & Lucide Icons
+## 🛠️ Technical Stack
 
-Audio: Web Audio API (AudioContext, MediaRecorder)
+| Category | Technology |
+| :--- | :--- |
+| **Frontend** | Next.js 15 (App Router), React, TypeScript |
+| **AI/ML** | Transformers.js, Whisper (OpenAI) |
+| **State** | Custom Hooks, Context API |
+| **Styling** | Tailwind CSS, Lucide Icons, Shadcn UI |
+| **Threading** | Web Workers |
+| **Audio** | Web Audio API (AudioContext, MediaRecorder) |
 
-🏗️ Technical Challenges & Solutions
-1. The "Main Thread" Bottleneck
-Challenge: Running a Machine Learning model is CPU-intensive. Running it on the main thread would freeze the UI, preventing the user from interacting with buttons.
-Solution: Offloaded the model execution to a Web Worker. Used postMessage for asynchronous communication between the UI and the AI "Brain."
+---
 
-2. Stereo to Mono Audio Processing
-Challenge: The Whisper model requires mono audio at a specific sample rate (16kHz), but browser microphones often record in stereo at 44.1kHz or 48kHz.
-Solution: Implemented a custom audio processing pipeline using AudioContext to downsample and merge audio channels into a Float32Array before sending it to the model.
+## 🏗️ Engineering Deep Dive
+
+### 1. High-Performance Background Processing
+Running AI models in a browser can easily "freeze" the website. I implemented a **Web Worker** architecture to isolate the Transformers.js runtime. 
+
+
+
+By using a `postMessage` communication bridge, the main thread stays dedicated to the UI, while the background thread handles the heavy math required for speech-to-text.
+
+### 2. Digital Signal Processing (DSP)
+Whisper models require audio in a specific format (1channel, 16,000Hz). I built a processing pipeline that:
+1. Captures raw audio via `MediaRecorder`.
+2. Decodes the `ArrayBuffer` into an `AudioBuffer`.
+3. Merges Stereo channels into Mono using a mathematical mean of the waveforms.
+4. Normalizes the data into a `Float32Array` for the AI model.
+
+---
+
+## 🚀 Getting Started
+
+1. **Clone the repo:**
+   ```bash
+   git clone [https://github.com/yourusername/asr-transcriber.git](https://github.com/yourusername/asr-transcriber.git)
