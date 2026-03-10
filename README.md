@@ -1,36 +1,31 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+AI Voice Transcriber (ASR)
+A high-performance, privacy-focused audio transcription web application that runs Machine Learning models directly in the browser. No audio data ever leaves your device.
 
-## Getting Started
+🚀 Key Features
+On-Device AI: Utilizes Whisper-tiny via Transformers.js for real-time transcription.
 
-First, run the development server:
+Privacy First: Zero server-side processing; all audio remains local.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+Multi-threaded Performance: Dedicated Web Workers handle heavy ML computation to keep the UI buttery smooth.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Dynamic UI: A responsive, collapsible sidebar with real-time transcription status and audio previews.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+🛠️ Tech Stack
+Framework: Next.js 15+ (App Router)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+AI Library: Transformers.js (Hugging Face)
 
-## Learn More
+State Management: React Hooks (useMemo, useCallback, useRef)
 
-To learn more about Next.js, take a look at the following resources:
+Styling: Tailwind CSS & Lucide Icons
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Audio: Web Audio API (AudioContext, MediaRecorder)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+🏗️ Technical Challenges & Solutions
+1. The "Main Thread" Bottleneck
+Challenge: Running a Machine Learning model is CPU-intensive. Running it on the main thread would freeze the UI, preventing the user from interacting with buttons.
+Solution: Offloaded the model execution to a Web Worker. Used postMessage for asynchronous communication between the UI and the AI "Brain."
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+2. Stereo to Mono Audio Processing
+Challenge: The Whisper model requires mono audio at a specific sample rate (16kHz), but browser microphones often record in stereo at 44.1kHz or 48kHz.
+Solution: Implemented a custom audio processing pipeline using AudioContext to downsample and merge audio channels into a Float32Array before sending it to the model.
