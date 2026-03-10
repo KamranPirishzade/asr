@@ -53,7 +53,7 @@ export default function ManualRecorder() {
   };
 
   return (
-    <div className="flex flex-col items-center rounded-2xl border border-gray-400 p-4 shadow-2xl">
+    <div className="flex flex-col items-center rounded-md border border-gray-400 p-4 shadow-2xl">
       <div className="mb-2">
         {isRecording ? (
           <div className="flex animate-pulse items-center gap-2 text-red-500">

@@ -58,7 +58,7 @@ export default function Page() {
   }
 
   return (
-    <div className="m-4 flex w-full flex-col">
+    <div className="m-4 flex flex-1 flex-col">
       <Recording recording={recording} />
     </div>
   );

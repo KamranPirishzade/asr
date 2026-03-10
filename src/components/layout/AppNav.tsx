@@ -8,9 +8,11 @@ import { useState } from 'react';
 import { cn } from '@/lib/utils';
 import Link from 'next/link';
 import Loading from '../ui/Loading';
+import { useParams } from 'next/navigation';
 export default function AppNav() {
   const { recordings, isLoading } = useRecordingsContext();
   const [open, setOpen] = useState(false);
+  const { slug } = useParams();
 
   const handleNav = () => {
     setOpen((pre) => !pre);
@@ -19,7 +21,7 @@ export default function AppNav() {
   return (
     <nav
       className={cn(
-        'bg-main relative m-4 flex w-64 flex-col justify-start rounded-2xl border border-neutral-400 p-2 shadow-xl transition-all transition-discrete duration-300',
+        'bg-main relative m-4 flex w-64 flex-col justify-start rounded-xl border border-neutral-400 p-2 shadow-xl transition-all transition-discrete duration-300',
         {
           'w-10 -translate-x-[200%]': open,
         }
@@ -51,12 +53,15 @@ export default function AppNav() {
           {recordings.map((recording) => (
             <Link
               key={recording.id}
-              className="truncate"
+              className={cn(
+                'text-secondary cursor-pointer truncate overflow-hidden rounded-md border-b-2 p-1 text-ellipsis whitespace-nowrap transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
+                {
+                  'bg-secondary text-main': slug == recording.id,
+                }
+              )}
               href={`/${recording.id}`}
             >
-              <div className="text-secondary cursor-pointer truncate rounded-xl border-b-2 p-1 text-ellipsis transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md">
-                {recording.label}
-              </div>
+              {recording.label}
             </Link>
           ))}
         </div>
@@ -65,7 +70,7 @@ export default function AppNav() {
       <form action={logoutAction} className="mt-auto">
         <Button
           type="submit"
-          className="flex w-full items-center gap-2 rounded-lg px-4 py-2 text-red-600 ring-1 transition-all hover:bg-red-500"
+          className="flex w-full items-center gap-2 rounded-md px-4 py-2 text-red-600 ring-1 transition-all hover:bg-red-500"
         >
           <LogOut size={20} />
           Sign Out
