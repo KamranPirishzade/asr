@@ -7,7 +7,7 @@ import { getThemeClasses } from '@/lib/design/theme';
 interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   variant?: 'primary' | 'secondary';
   scale?: 'normal' | 'small';
-  ref: Ref<HTMLInputElement>;
+  ref?: Ref<HTMLInputElement>;
 }
 
 export default function Input({

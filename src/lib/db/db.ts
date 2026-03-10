@@ -1,7 +1,7 @@
 import Dexie, { Table } from 'dexie';
 
 export interface Recording {
-  id?: string;
+  id: string;
   label: string;
   audioBlob: Blob;
   transcript: string;

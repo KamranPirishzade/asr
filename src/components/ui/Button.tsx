@@ -29,7 +29,7 @@ export default function Button({
 
   return (
     <button
-      className={`${baseStyles} ${themeStyles} ${variantStyles} ${className} ${size === 'small' ? 'px-2! py-1!' : ''}`}
+      className={`${baseStyles} ${themeStyles} ${variantStyles} ${className} ${size === 'small' ? 'px-2! py-1!' : ''} disabled:pointer-events-none disabled:bg-gray-400`}
       {...props}
     >
       {children}

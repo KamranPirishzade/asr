@@ -1,8 +1,19 @@
 import type { Recording } from '@/lib/db/db';
 import { cn } from '@/lib/utils';
+import Button from '../ui/Button';
+import { useRecordings } from '@/hooks/useRecordings';
+import { useRouter } from 'next/navigation';
 
 export default function Recording({ recording }: { recording: Recording }) {
   const url = URL.createObjectURL(recording.audioBlob);
+  const router = useRouter();
+
+  const { deleteRecording } = useRecordings();
+
+  const deleteRecordingHandler = () => {
+    deleteRecording(recording.id);
+    router.push('/');
+  };
 
   return (
     <div className="border-main grid w-full gap-4 rounded-2xl bg-white p-4">
@@ -28,6 +39,19 @@ export default function Recording({ recording }: { recording: Recording }) {
       <div>
         <p className="mb-2 text-sm text-gray-500">Transcript:</p>
         <p className="rounded-md bg-gray-100 p-2">{recording.transcript}</p>
+      </div>
+      <div className="flex gap-2">
+        <Button size="small">Edit</Button>
+        <Button
+          size="small"
+          variant="secondary"
+          onClick={deleteRecordingHandler}
+        >
+          Delete
+        </Button>
+        <Button size="small">Mark as Pending</Button>
+        <Button size="small">Mark as Synced</Button>
+        <Button size="small">Mark as Failed</Button>
       </div>
     </div>
   );

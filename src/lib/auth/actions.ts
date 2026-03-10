@@ -22,7 +22,7 @@ export async function loginAction(
   if (!validated.success) {
     return {
       errors: validated.error.flatten().fieldErrors,
-      message: 'Please fix the errors below.',
+      // message: 'Please fix the errors below.',
     };
   }
 
@@ -50,7 +50,7 @@ export async function loginAction(
       return { success: true };
     }
     return {
-      message: 'Use email: admin@example.com and password: password123',
+      message: 'Use email: admin@example.com and password: Password123@',
     };
   } catch (err) {
     return { message: 'Invalid email or password.' };

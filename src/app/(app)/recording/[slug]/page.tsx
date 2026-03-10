@@ -6,6 +6,7 @@ import { Recording as RecordingType } from '@/lib/db/db';
 import Recording from '@/components/recorder/Recording';
 import { useRecordingsContext } from '@/providers/RecordingsContext';
 import Loading from '@/components/ui/Loading';
+import ToggleNav from '@/components/layout/ToggleNav';
 
 export default function Page() {
   const params = useParams();
@@ -49,16 +50,16 @@ export default function Page() {
         <Loading />
       </div>
     );
+
   if (error) return <div className="m-4 flex w-full flex-col">{error}</div>;
 
   if (!recording) {
-    return (
-      <div className="m-4 flex w-full flex-col">{'Recording not found'}</div>
-    );
+    return null;
   }
 
   return (
-    <div className="m-4 flex flex-1 flex-col">
+    <div className="flex flex-1 flex-col bg-white p-4">
+      <ToggleNav />
       <Recording recording={recording} />
     </div>
   );

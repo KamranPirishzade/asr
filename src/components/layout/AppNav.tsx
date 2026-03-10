@@ -59,7 +59,7 @@ export default function AppNav() {
                   'bg-secondary text-main': slug == recording.id,
                 }
               )}
-              href={`/${recording.id}`}
+              href={`/recording/${recording.id}`}
             >
               {recording.label}
             </Link>

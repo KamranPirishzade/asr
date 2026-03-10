@@ -78,6 +78,7 @@ export default function RecorderPanel() {
             <Button
               onClick={() => start(buffer)}
               className="flex h-16 w-16 items-center rounded-full"
+              disabled={isProcessing}
             >
               <RotateCcw size={28} />
             </Button>
@@ -88,6 +89,7 @@ export default function RecorderPanel() {
           <Button
             onClick={startRecording}
             className="flex h-16 w-16 items-center rounded-full"
+            disabled={isProcessing}
           >
             <Mic size={28} />
           </Button>
