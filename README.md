@@ -51,4 +51,4 @@ Whisper models require audio in a specific format (1channel, 16,000Hz). I built 
 
 1. **Clone the repo:**
    ```bash
-   git clone [https://github.com/yourusername/asr-transcriber.git](https://github.com/yourusername/asr-transcriber.git)
+   git clone https://github.com/KamranPirishzade/asr.git
