@@ -118,6 +118,22 @@ export function useRecordings() {
     [loadRecordings]
   );
 
+  const markPending = useCallback(
+    async (id: string) => {
+      try {
+        await db.recordings.update(id, {
+          syncStatus: 'pending',
+        });
+
+        await loadRecordings();
+      } catch (err) {
+        console.error('Error marking recording as failed:', err);
+        throw err;
+      }
+    },
+    [loadRecordings]
+  );
+
   const getPendingRecordings = useCallback(async () => {
     try {
       return await db.recordings
@@ -153,6 +169,7 @@ export function useRecordings() {
     updateTranscript,
     markSynced,
     markFailed,
+    markPending,
     getPendingRecordings,
     getRecordingById,
     refresh: loadRecordings,

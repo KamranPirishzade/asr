@@ -1,18 +1,43 @@
+'use client';
+
 import type { Recording } from '@/lib/db/db';
 import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
-import { useRecordings } from '@/hooks/useRecordings';
 import { useRouter } from 'next/navigation';
+import { useEffect, useMemo } from 'react';
 
-export default function Recording({ recording }: { recording: Recording }) {
-  const url = URL.createObjectURL(recording.audioBlob);
+interface RecordingProps {
+  recording: Recording;
+  onDelete: (id: string) => Promise<void>;
+  onMarkPending: (id: string) => Promise<void>;
+  onMarkSynced: (id: string) => Promise<void>;
+  onMarkFailed: (id: string) => Promise<void>;
+}
+
+export default function Recording({
+  recording,
+  onDelete,
+  onMarkPending,
+  onMarkSynced,
+  onMarkFailed,
+}: RecordingProps) {
+  const url = useMemo(() => {
+    return URL.createObjectURL(recording.audioBlob);
+  }, [recording.audioBlob]);
+
+  useEffect(() => {
+    return () => {
+      URL.revokeObjectURL(url);
+    };
+  }, [url]);
+
   const router = useRouter();
 
-  const { deleteRecording } = useRecordings();
-
-  const deleteRecordingHandler = () => {
-    deleteRecording(recording.id);
-    router.push('/');
+  const deleteRecordingHandler = async () => {
+    if (confirm('Are you sure you want to delete this recording?')) {
+      await onDelete(recording.id);
+      router.push('/');
+    }
   };
 
   return (
@@ -32,26 +57,51 @@ export default function Recording({ recording }: { recording: Recording }) {
           </span>
         </div>
       </div>
+
       <div>
         <p className="mb-2 text-sm text-gray-500">Recording:</p>
         <audio src={url} controls className="h-10 w-full" />
       </div>
+
       <div>
         <p className="mb-2 text-sm text-gray-500">Transcript:</p>
         <p className="rounded-md bg-gray-100 p-2">{recording.transcript}</p>
       </div>
+
       <div className="flex gap-2">
         <Button size="small">Edit</Button>
+
         <Button
           size="small"
-          variant="secondary"
+          onClick={() => onMarkPending(recording.id)}
+          disabled={recording.syncStatus === 'pending'}
+        >
+          Mark as Pending
+        </Button>
+
+        <Button
+          size="small"
+          onClick={() => onMarkSynced(recording.id)}
+          disabled={recording.syncStatus === 'synced'}
+        >
+          Mark as Synced
+        </Button>
+
+        <Button
+          size="small"
+          onClick={() => onMarkFailed(recording.id)}
+          disabled={recording.syncStatus === 'failed'}
+        >
+          Mark as Failed
+        </Button>
+
+        <Button
+          size="small"
+          className="bg-red-700"
           onClick={deleteRecordingHandler}
         >
           Delete
         </Button>
-        <Button size="small">Mark as Pending</Button>
-        <Button size="small">Mark as Synced</Button>
-        <Button size="small">Mark as Failed</Button>
       </div>
     </div>
   );
