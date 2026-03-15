@@ -105,7 +105,7 @@ export default function RecorderPanel() {
       </div>
       <div className="w-full">
         {isProcessing && (
-          <p className="text-secondary animate-pulse text-sm font-semibold">
+          <p className="text-secondary mt-4 animate-pulse text-sm font-semibold">
             Model is transcribing...
           </p>
         )}

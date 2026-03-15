@@ -4,7 +4,8 @@ import type { Recording } from '@/lib/db/db';
 import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
 import { useRouter } from 'next/navigation';
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Trash2 } from 'lucide-react';
 
 interface RecordingProps {
   recording: Recording;
@@ -12,6 +13,11 @@ interface RecordingProps {
   onMarkPending: (id: string) => Promise<void>;
   onMarkSynced: (id: string) => Promise<void>;
   onMarkFailed: (id: string) => Promise<void>;
+  saveTranscript: (
+    id: string,
+    transcript: string,
+    label?: string
+  ) => Promise<void>;
 }
 
 export default function Recording({
@@ -20,7 +26,11 @@ export default function Recording({
   onMarkPending,
   onMarkSynced,
   onMarkFailed,
+  saveTranscript,
 }: RecordingProps) {
+  const [transcript, setTranscript] = useState(recording.transcript);
+  const [label, setLabel] = useState(recording.label);
+
   const url = useMemo(() => {
     return URL.createObjectURL(recording.audioBlob);
   }, [recording.audioBlob]);
@@ -40,10 +50,21 @@ export default function Recording({
     }
   };
 
+  const saveTranscriptHandler = async () => {
+    await saveTranscript(recording.id, transcript, label);
+  };
+
   return (
     <div className="border-main grid w-full gap-4 rounded-2xl bg-white p-4">
       <div className="flex items-center justify-between gap-2">
-        <h2 className="text-3xl font-semibold">{recording.label}</h2>
+        <div>
+          <p className="mb-2 text-sm text-gray-500">Label:</p>
+          <input
+            className="w-full border-b border-gray-500 pb-1 text-3xl font-semibold outline-none"
+            value={label}
+            onChange={(e) => setLabel(e.target.value)}
+          />
+        </div>
         <div className="">
           Status:{' '}
           <span
@@ -65,14 +86,20 @@ export default function Recording({
 
       <div>
         <p className="mb-2 text-sm text-gray-500">Transcript:</p>
-        <p className="rounded-md bg-gray-100 p-2">{recording.transcript}</p>
+        <textarea
+          className="focus:outline-secondary w-full resize-none rounded-md bg-gray-100 p-2 outline-0 transition-all duration-300 focus:ring-1"
+          rows={4}
+          value={transcript}
+          onChange={(e) => setTranscript(e.target.value)}
+        ></textarea>
       </div>
 
       <div className="flex gap-2">
-        <Button size="small">Edit</Button>
+        <Button size="small" onClick={saveTranscriptHandler}>
+          Save
+        </Button>
 
         <Button
-          size="small"
           onClick={() => onMarkPending(recording.id)}
           disabled={recording.syncStatus === 'pending'}
         >
@@ -80,7 +107,6 @@ export default function Recording({
         </Button>
 
         <Button
-          size="small"
           onClick={() => onMarkSynced(recording.id)}
           disabled={recording.syncStatus === 'synced'}
         >
@@ -88,20 +114,19 @@ export default function Recording({
         </Button>
 
         <Button
-          size="small"
           onClick={() => onMarkFailed(recording.id)}
           disabled={recording.syncStatus === 'failed'}
         >
           Mark as Failed
         </Button>
 
-        <Button
-          size="small"
-          className="bg-red-700"
+        <button
+          aria-label="Clear"
           onClick={deleteRecordingHandler}
+          className="rounded-md p-2 text-red-500 transition-colors hover:bg-red-50"
         >
-          Delete
-        </Button>
+          <Trash2 size={25} />
+        </button>
       </div>
     </div>
   );

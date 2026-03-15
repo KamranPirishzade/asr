@@ -50,20 +50,25 @@ export default function AppNav() {
         <h2 className="mb-2 text-lg">Recordings</h2>
         <div className="grid gap-3">
           {isLoading ? <Loading /> : ''}
-          {recordings.map((recording) => (
-            <Link
-              key={recording.id}
-              className={cn(
-                'text-secondary cursor-pointer truncate overflow-hidden rounded-md border-b-2 p-1 text-ellipsis whitespace-nowrap transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
-                {
-                  'bg-secondary text-main': slug == recording.id,
-                }
-              )}
-              href={`/recording/${recording.id}`}
-            >
-              {recording.label}
-            </Link>
-          ))}
+
+          {recordings.length === 0 ? (
+            <p className="text-gray-500">No recordings found.</p>
+          ) : (
+            recordings.map((recording) => (
+              <Link
+                key={recording.id}
+                className={cn(
+                  'text-secondary cursor-pointer truncate overflow-hidden rounded-md border-b-2 p-1 text-ellipsis whitespace-nowrap transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md',
+                  {
+                    'bg-secondary text-main': slug == recording.id,
+                  }
+                )}
+                href={`/recording/${recording.id}`}
+              >
+                {recording.label}
+              </Link>
+            ))
+          )}
         </div>
       </div>
 

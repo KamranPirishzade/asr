@@ -69,12 +69,18 @@ export function useRecordings() {
   );
 
   const updateTranscript = useCallback(
-    async (id: string, transcript: string) => {
+    async (id: string, transcript: string, label?: string) => {
       try {
-        await db.recordings.update(id, {
+        const updates: Partial<Recording> = {
           transcript: transcript,
           syncStatus: 'pending',
-        });
+        };
+
+        if (label !== undefined) {
+          updates.label = label;
+        }
+
+        await db.recordings.update(id, updates);
         await loadRecordings();
       } catch (err) {
         const message =
@@ -85,7 +91,6 @@ export function useRecordings() {
     },
     [loadRecordings]
   );
-
   const markSynced = useCallback(
     async (id: string) => {
       try {

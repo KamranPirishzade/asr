@@ -1,6 +1,6 @@
 'use client';
 
-import { useParams } from 'next/navigation';
+import { notFound, useParams } from 'next/navigation';
 import Recording from '@/components/recorder/Recording';
 import { useRecordingsContext } from '@/providers/RecordingsContext';
 import Loading from '@/components/ui/Loading';
@@ -15,6 +15,7 @@ export default function Page() {
     markPending,
     markSynced,
     markFailed,
+    updateTranscript,
   } = useRecordingsContext();
 
   const slug = params.slug;
@@ -30,7 +31,11 @@ export default function Page() {
   }
 
   if (!recording) {
-    return <div className="m-4 flex w-full flex-col">Recording not found</div>;
+    return (
+      <div className="m-4 flex w-full flex-col text-5xl">
+        Recording not found
+      </div>
+    );
   }
 
   return (
@@ -42,6 +47,7 @@ export default function Page() {
         onMarkPending={markPending}
         onMarkSynced={markSynced}
         onMarkFailed={markFailed}
+        saveTranscript={updateTranscript}
       />
     </div>
   );
