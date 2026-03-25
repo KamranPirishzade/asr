@@ -21,6 +21,8 @@ export default function TranscriptResult({
   blob,
 }: Props) {
   const [copied, setCopied] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveSuccess, setSaveSuccess] = useState(false);
   const transcript = useRef<HTMLTextAreaElement>(null);
   const [editableText, setEditableText] = useState(text);
   const { saveRecording, refresh } = useRecordingsContext();
@@ -38,18 +40,38 @@ export default function TranscriptResult({
     }
   }
 
-  function handleSave() {
-    saveRecording(blob, editableText, labelRef.current?.value);
-    refresh();
+  async function handleSave() {
+    if (isSaving) {
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      await saveRecording(blob, editableText, labelRef.current?.value);
+      await refresh();
+      setSaveSuccess(true);
+      setTimeout(() => setSaveSuccess(false), 2000);
+    } finally {
+      setIsSaving(false);
+    }
   }
 
   return (
-    <div className="mt-6 w-full">
+    <div className="mt-6 w-full rounded-xl border border-gray-200 bg-gray-50 p-4">
+      <div className="mb-3 flex items-center justify-between">
+        <p className="text-xs tracking-wide text-gray-500 uppercase">
+          Auto transcript result
+        </p>
+        <span className="text-xs text-gray-500">
+          {editableText.length} chars
+        </span>
+      </div>
+
       <div className="mb-2 flex items-center justify-between">
         {!isProcessing && (
-          <div className="flex w-full items-end justify-end gap-2">
-            <div className="mr-auto flex flex-1 place-items-center gap-2">
-              Label:
+          <div className="flex w-full flex-wrap items-end justify-end gap-2">
+            <div className="mr-auto flex min-w-60 flex-1 place-items-center gap-2">
+              <span className="text-sm text-gray-600">Label</span>
               <Input
                 type="text"
                 className="w-full"
@@ -59,9 +81,11 @@ export default function TranscriptResult({
               <Button
                 onClick={handleSave}
                 size="small"
+                disabled={isSaving || editableText.trim().length === 0}
                 className="flex items-center gap-2"
               >
-                Send <SendHorizonal size={16} />
+                {isSaving ? 'Saving...' : saveSuccess ? 'Saved' : 'Save'}{' '}
+                <SendHorizonal size={16} />
               </Button>
             </div>
 
@@ -103,7 +127,7 @@ export default function TranscriptResult({
           }
           onChange={(e) => setEditableText(e.target.value)}
           disabled={isProcessing}
-          className={`min-h-38 w-full rounded-xl border-0 p-4 ring ring-gray-300 transition-all duration-300 outline-none ${isProcessing ? 'animate-pulse bg-gray-50 text-gray-400' : 'focus:ring-secondary border-gray-400 bg-white shadow-sm focus:ring'} `}
+          className={`min-h-38 w-full rounded-xl border border-gray-200 p-4 transition-all duration-300 outline-none ${isProcessing ? 'animate-pulse bg-gray-50 text-gray-400' : 'focus:ring-secondary bg-white shadow-sm focus:ring'}`}
         />
       </div>
     </div>

@@ -5,7 +5,6 @@ import { useParams } from 'next/navigation';
 import Recording from '@/components/recorder/Recording';
 import { useRecordingsContext } from '@/providers/RecordingsContext';
 import Loading from '@/components/ui/Loading';
-import ToggleNav from '@/components/layout/ToggleNav';
 
 export default function Page() {
   const params = useParams();
