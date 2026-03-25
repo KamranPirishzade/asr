@@ -52,7 +52,7 @@ export async function loginAction(
     return {
       message: 'Use email: admin@example.com and password: Password123@',
     };
-  } catch (err) {
+  } catch {
     return { message: 'Invalid email or password.' };
   }
 }

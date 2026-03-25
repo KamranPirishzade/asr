@@ -7,6 +7,7 @@ export interface Recording {
   transcript: string;
   createdAt: number;
   syncStatus: 'pending' | 'synced' | 'failed';
+  isPinned: boolean;
 }
 
 export class AudioTranscriptionDB extends Dexie {
@@ -17,6 +18,20 @@ export class AudioTranscriptionDB extends Dexie {
     this.version(1).stores({
       recordings: '++id, createdAt, syncStatus',
     });
+    this.version(2)
+      .stores({
+        recordings: '++id, createdAt, syncStatus, isPinned',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('recordings')
+          .toCollection()
+          .modify((recording: Partial<Recording>) => {
+            if (recording.isPinned === undefined) {
+              recording.isPinned = false;
+            }
+          });
+      });
   }
 }
 

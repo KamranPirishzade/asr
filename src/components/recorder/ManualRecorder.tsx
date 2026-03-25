@@ -9,7 +9,6 @@ import Transcript from '../transcript/Transcript';
 export default function ManualRecorder() {
   const [isRecording, setIsRecording] = useState(false);
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
-  const [buffer, setBuffer] = useState<AudioBuffer>();
   const [blob, setBlob] = useState<Blob>();
 
   const mediaRecorder = useRef<MediaRecorder | null>(null);
@@ -34,7 +33,6 @@ export default function ManualRecorder() {
         const audioContext = new AudioContext({ sampleRate: 16000 });
         const audioBuffer = await audioContext.decodeAudioData(arrayBuffer);
         setBlob(audioBlob);
-        setBuffer(audioBuffer);
         setAudioUrl(url);
         start(audioBuffer);
         audioChunks.current = [];

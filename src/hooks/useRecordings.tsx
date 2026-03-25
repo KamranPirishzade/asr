@@ -5,7 +5,8 @@ import { db, type Recording } from '@/lib/db/db';
 
 export function useRecordings() {
   const [recordings, setRecordings] = useState<Recording[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasLoaded, setHasLoaded] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
   const loadRecordings = useCallback(async () => {
@@ -16,13 +17,21 @@ export function useRecordings() {
         .orderBy('createdAt')
         .reverse()
         .toArray();
-      setRecordings(recordings);
+      const sortedRecordings = recordings.sort((a, b) => {
+        if (a.isPinned === b.isPinned) {
+          return b.createdAt - a.createdAt;
+        }
+
+        return a.isPinned ? -1 : 1;
+      });
+      setRecordings(sortedRecordings);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to load recordings';
 
       setError(message);
     } finally {
+      setHasLoaded(true);
       setIsLoading(false);
     }
   }, []);
@@ -40,6 +49,7 @@ export function useRecordings() {
           transcript,
           createdAt: Date.now(),
           syncStatus: 'pending',
+          isPinned: false,
         };
 
         await db.recordings.add(newRecording);
@@ -139,6 +149,28 @@ export function useRecordings() {
     [loadRecordings]
   );
 
+  const togglePinned = useCallback(
+    async (id: string) => {
+      try {
+        const recording = await db.recordings.get(id);
+        if (!recording) {
+          throw new Error('Recording not found');
+        }
+
+        await db.recordings.update(id, {
+          isPinned: !recording.isPinned,
+        });
+        await loadRecordings();
+      } catch (err) {
+        const message =
+          err instanceof Error ? err.message : 'Failed to toggle pinned state';
+        setError(message);
+        throw err;
+      }
+    },
+    [loadRecordings]
+  );
+
   const getPendingRecordings = useCallback(async () => {
     try {
       return await db.recordings
@@ -167,6 +199,7 @@ export function useRecordings() {
   return {
     recordings,
     isLoading,
+    hasLoaded,
     error,
 
     saveRecording,
@@ -175,6 +208,7 @@ export function useRecordings() {
     markSynced,
     markFailed,
     markPending,
+    togglePinned,
     getPendingRecordings,
     getRecordingById,
     refresh: loadRecordings,

@@ -11,7 +11,7 @@ export default function NotFound() {
         className="group flex justify-center gap-2 font-semibold"
       >
         <MoveLeft className="transition-all duration-300 group-hover:-translate-x-2" />
-        <p>back to 505</p>
+        <p>Back to app</p>
       </Link>
     </div>
   );
