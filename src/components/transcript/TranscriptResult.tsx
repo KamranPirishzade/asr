@@ -47,7 +47,7 @@ export default function TranscriptResult({
 
     setIsSaving(true);
     try {
-      await saveRecording(blob, editableText, labelRef.current?.value);
+      await saveRecording(blob, editableText, labelRef.current?.value, 'auto');
       await refresh();
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);

@@ -5,6 +5,7 @@ export interface Recording {
   label: string;
   audioBlob: Blob;
   transcript: string;
+  recordingType: 'manual' | 'auto';
   createdAt: number;
   syncStatus: 'pending' | 'synced' | 'failed';
   isPinned: boolean;
@@ -29,6 +30,21 @@ export class AudioTranscriptionDB extends Dexie {
           .modify((recording: Partial<Recording>) => {
             if (recording.isPinned === undefined) {
               recording.isPinned = false;
+            }
+          });
+      });
+
+    this.version(3)
+      .stores({
+        recordings: '++id, createdAt, syncStatus, isPinned, recordingType',
+      })
+      .upgrade(async (tx) => {
+        await tx
+          .table('recordings')
+          .toCollection()
+          .modify((recording: Partial<Recording>) => {
+            if (recording.recordingType === undefined) {
+              recording.recordingType = 'auto';
             }
           });
       });

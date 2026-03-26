@@ -17,7 +17,8 @@ export default function RecorderPanel() {
   const audioChunks = useRef<Blob[]>([]);
   const timerRef = useRef<number | null>(null);
 
-  const { onInputChange, isProcessing, start, output } = useTranscriber();
+  const { onInputChange, isProcessing, start, output, error } =
+    useTranscriber();
 
   useEffect(() => {
     return () => {
@@ -210,6 +211,12 @@ export default function RecorderPanel() {
       {isProcessing ? (
         <p className="text-secondary mb-2 animate-pulse text-sm font-semibold">
           Model is transcribing...
+        </p>
+      ) : null}
+
+      {error ? (
+        <p className="mb-2 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {error}
         </p>
       ) : null}
 

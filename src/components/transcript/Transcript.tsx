@@ -39,7 +39,12 @@ export default function Transcript({ text, blob }: Props) {
 
     setIsSaving(true);
     try {
-      await saveRecording(blob, editableText, labelRef.current?.value);
+      await saveRecording(
+        blob,
+        editableText,
+        labelRef.current?.value,
+        'manual'
+      );
       await refresh();
       setSaveSuccess(true);
       setTimeout(() => setSaveSuccess(false), 2000);

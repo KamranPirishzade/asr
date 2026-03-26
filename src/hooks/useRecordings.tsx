@@ -37,7 +37,12 @@ export function useRecordings() {
   }, []);
 
   const saveRecording = useCallback(
-    async (audioBlob: Blob, transcript: string, label?: string) => {
+    async (
+      audioBlob: Blob,
+      transcript: string,
+      label?: string,
+      recordingType: 'manual' | 'auto' = 'auto'
+    ) => {
       try {
         const id = uuidv4();
         const recordingLabel =
@@ -47,6 +52,7 @@ export function useRecordings() {
           label: recordingLabel,
           audioBlob,
           transcript,
+          recordingType,
           createdAt: Date.now(),
           syncStatus: 'pending',
           isPinned: false,

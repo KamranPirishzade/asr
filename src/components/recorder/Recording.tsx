@@ -1,11 +1,17 @@
 'use client';
 
 import type { Recording } from '@/lib/db/db';
-import { cn } from '@/lib/utils';
 import Button from '../ui/Button';
 import { useRouter } from 'next/navigation';
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Calendar, Pin, PinOff, Save, Trash2 } from 'lucide-react';
+import { Download, Pin, PinOff, Save, Trash2 } from 'lucide-react';
+import {
+  downloadTextContent,
+  sanitizeFileNamePart,
+  transcriptToEstimatedSrt,
+} from '@/lib/transcriptExport';
+import RecordingHeader from './RecordingHeader';
+import RecordingTranscriptEditor from './RecordingTranscriptEditor';
 
 interface RecordingProps {
   recording: Recording;
@@ -41,7 +47,7 @@ export default function Recording({
     'idle'
   );
 
-  const url = useMemo(() => {
+  const audioUrl = useMemo(() => {
     return URL.createObjectURL(recording.audioBlob);
   }, [recording.audioBlob]);
 
@@ -61,9 +67,9 @@ export default function Recording({
 
   useEffect(() => {
     return () => {
-      URL.revokeObjectURL(url);
+      URL.revokeObjectURL(audioUrl);
     };
-  }, [url]);
+  }, [audioUrl]);
 
   useEffect(() => {
     setTranscript(recording.transcript);
@@ -77,17 +83,19 @@ export default function Recording({
 
   const router = useRouter();
 
-  const deleteRecordingHandler = async () => {
-    if (confirm('Are you sure you want to delete this recording?')) {
-      setIsDeleting(true);
-      try {
-        await onDelete(recording.id);
-        router.push('/');
-      } finally {
-        setIsDeleting(false);
-      }
+  const deleteRecordingHandler = useCallback(async () => {
+    if (!confirm('Are you sure you want to delete this recording?')) {
+      return;
     }
-  };
+
+    setIsDeleting(true);
+    try {
+      await onDelete(recording.id);
+      router.push('/');
+    } finally {
+      setIsDeleting(false);
+    }
+  }, [onDelete, recording.id, router]);
 
   const saveTranscriptHandler = useCallback(async () => {
     if (!isDirty || isSaving) {
@@ -116,83 +124,53 @@ export default function Recording({
     return () => window.removeEventListener('keydown', handleSaveShortcut);
   }, [saveTranscriptHandler]);
 
-  const saveStateLabel =
-    saveState === 'saved'
-      ? 'Saved'
-      : saveState === 'dirty'
-        ? 'Unsaved changes'
-        : 'Up to date';
+  const exportFileBaseName = useMemo(() => {
+    const safeLabel = sanitizeFileNamePart(label || recording.label);
+    const datePart = new Date(recording.createdAt).toISOString().slice(0, 10);
+    return `${safeLabel}-${datePart}`;
+  }, [label, recording.createdAt, recording.label]);
+
+  const exportAsTxt = useCallback(() => {
+    const content = transcript.trim() || 'No transcript available.';
+    downloadTextContent(content, `${exportFileBaseName}.txt`, 'text/plain');
+  }, [exportFileBaseName, transcript]);
+
+  const exportAsSrt = useCallback(() => {
+    const content = transcript.trim();
+    const srt = content
+      ? transcriptToEstimatedSrt(content)
+      : '1\n00:00:00,000 --> 00:00:02,000\nNo transcript available.';
+
+    downloadTextContent(srt, `${exportFileBaseName}.srt`, 'text/plain');
+  }, [exportFileBaseName, transcript]);
 
   return (
     <div className="border-main grid w-full gap-4 rounded-2xl border bg-white p-4 shadow-sm md:p-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-60 flex-1">
-          <p className="mb-2 text-xs tracking-wide text-gray-500 uppercase">
-            Label
-          </p>
-          <input
-            className="w-full border-b border-gray-500 pb-1 text-2xl font-semibold outline-none md:text-3xl"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-          />
-        </div>
-
-        <div className="flex flex-col items-start gap-2">
-          <div className="flex items-center gap-2 text-xs tracking-wide text-gray-500 uppercase">
-            <Calendar size={14} />
-            <span>{formattedCreatedAt}</span>
-          </div>
-
-          <span className="text-xs text-gray-500">Sync status</span>
-          <span
-            className={cn(
-              'rounded-full px-3 py-1 text-xs font-semibold uppercase',
-              {
-                'bg-orange-100 text-orange-700':
-                  recording.syncStatus === 'pending',
-                'bg-emerald-100 text-emerald-700':
-                  recording.syncStatus === 'synced',
-                'bg-red-100 text-red-700': recording.syncStatus === 'failed',
-              }
-            )}
-          >
-            {recording.syncStatus}
-          </span>
-        </div>
-      </div>
+      <RecordingHeader
+        recording={recording}
+        label={label}
+        onLabelChange={setLabel}
+        formattedCreatedAt={formattedCreatedAt}
+      />
 
       <div className="rounded-xl border border-gray-200 bg-gray-50 p-3">
         <p className="mb-2 text-xs tracking-wide text-gray-500 uppercase">
           Recording preview
         </p>
-        <audio src={url} controls className="h-10 w-full" preload="metadata" />
+        <audio
+          src={audioUrl}
+          controls
+          className="h-10 w-full"
+          preload="metadata"
+        />
       </div>
 
-      <div>
-        <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs tracking-wide text-gray-500 uppercase">
-            Transcript
-          </p>
-          <span
-            className={cn('text-xs font-medium', {
-              'text-emerald-700': saveState === 'saved',
-              'text-amber-700': saveState === 'dirty',
-              'text-gray-500': saveState === 'idle',
-            })}
-          >
-            {isSaving ? 'Saving...' : saveStateLabel}
-          </span>
-        </div>
-        <textarea
-          className="focus:outline-secondary w-full resize-none rounded-md bg-gray-100 p-3 outline-0 transition-all duration-300 focus:ring-1"
-          rows={6}
-          value={transcript}
-          onChange={(e) => setTranscript(e.target.value)}
-        ></textarea>
-        <p className="mt-1 text-right text-xs text-gray-400">
-          {transcript.length} characters
-        </p>
-      </div>
+      <RecordingTranscriptEditor
+        transcript={transcript}
+        onTranscriptChange={setTranscript}
+        isSaving={isSaving}
+        saveState={saveState}
+      />
 
       <div className="flex flex-wrap gap-2 border-t border-gray-200 pt-3">
         <Button
@@ -203,6 +181,26 @@ export default function Recording({
         >
           <Save size={16} />
           {isSaving ? 'Saving...' : 'Save'}
+        </Button>
+
+        <Button
+          variant="secondary"
+          size="small"
+          onClick={exportAsTxt}
+          className="flex items-center gap-2"
+        >
+          <Download size={16} />
+          Export TXT
+        </Button>
+
+        <Button
+          variant="secondary"
+          size="small"
+          onClick={exportAsSrt}
+          className="flex items-center gap-2"
+        >
+          <Download size={16} />
+          Export SRT
         </Button>
 
         <Button

@@ -23,17 +23,33 @@ export default function AppNav() {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(false);
   const [query, setQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<
+    'all' | 'pending' | 'synced' | 'failed'
+  >('all');
+  const [pinFilter, setPinFilter] = useState<'all' | 'pinned' | 'unpinned'>(
+    'all'
+  );
 
   const filteredRecordings = useMemo(() => {
     const trimmed = query.trim().toLowerCase();
-    if (!trimmed) {
-      return recordings;
-    }
 
-    return recordings.filter((recording) =>
-      recording.label.toLowerCase().includes(trimmed)
-    );
-  }, [query, recordings]);
+    return recordings.filter((recording) => {
+      const matchesQuery =
+        trimmed.length === 0
+          ? true
+          : recording.label.toLowerCase().includes(trimmed) ||
+            recording.transcript.toLowerCase().includes(trimmed);
+
+      const matchesStatus =
+        statusFilter === 'all' || recording.syncStatus === statusFilter;
+
+      const matchesPin =
+        pinFilter === 'all' ||
+        (pinFilter === 'pinned' ? recording.isPinned : !recording.isPinned);
+
+      return matchesQuery && matchesStatus && matchesPin;
+    });
+  }, [pinFilter, query, recordings, statusFilter]);
 
   const pendingCount = useMemo(
     () =>
@@ -73,7 +89,7 @@ export default function AppNav() {
         'bg-main m-4 flex h-[calc(100vh-2rem)] flex-col rounded-xl border border-neutral-400 p-2 shadow-xl transition-all duration-300 ease-out',
         {
           'w-72': !collapsed,
-          'w-16': collapsed,
+          'w-20': collapsed,
         }
       )}
     >
@@ -111,7 +127,7 @@ export default function AppNav() {
                 <AudioLines size={16} />
                 Continue latest
                 {latestRecording.isPinned ? (
-                  <Pin size={14} className="ml-auto text-amber-500" />
+                  <Pin size={14} className="ml-auto text-red-400" />
                 ) : null}
               </Link>
             ) : null}
@@ -172,10 +188,51 @@ export default function AppNav() {
                 id="recording-search"
                 value={query}
                 onChange={(event) => setQuery(event.target.value)}
-                placeholder="Search recordings"
+                placeholder="Search label or transcript"
                 className="w-full border-none bg-transparent py-2 text-sm outline-none"
               />
             </div>
+          </div>
+
+          <div className="mb-3 grid grid-cols-2 gap-2">
+            <label className="grid gap-1 text-[10px] tracking-wide text-gray-500 uppercase">
+              Status
+              <select
+                value={statusFilter}
+                onChange={(event) =>
+                  setStatusFilter(
+                    event.target.value as
+                      | 'all'
+                      | 'pending'
+                      | 'synced'
+                      | 'failed'
+                  )
+                }
+                className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-xs text-gray-700"
+              >
+                <option value="all">All</option>
+                <option value="synced">Synced</option>
+                <option value="pending">Pending</option>
+                <option value="failed">Failed</option>
+              </select>
+            </label>
+
+            <label className="grid gap-1 text-[10px] tracking-wide text-gray-500 uppercase">
+              Pin
+              <select
+                value={pinFilter}
+                onChange={(event) =>
+                  setPinFilter(
+                    event.target.value as 'all' | 'pinned' | 'unpinned'
+                  )
+                }
+                className="rounded-md border border-neutral-300 bg-white px-2 py-1 text-xs text-gray-700"
+              >
+                <option value="all">All</option>
+                <option value="pinned">Pinned</option>
+                <option value="unpinned">Unpinned</option>
+              </select>
+            </label>
           </div>
         </>
       ) : null}
@@ -185,7 +242,7 @@ export default function AppNav() {
           {isLoading ? <Loading scale="small" /> : null}
 
           {!isLoading && filteredRecordings.length === 0 ? (
-            <p className="px-1 text-sm text-gray-500">
+            <p className="truncate px-1 text-sm text-gray-500">
               {recordings.length === 0
                 ? 'No recordings found.'
                 : 'No matching recordings.'}
@@ -221,7 +278,7 @@ export default function AppNav() {
                       : recording.label}
                   </span>
                   {!collapsed && recording.isPinned ? (
-                    <Pin size={12} className="text-amber-500" />
+                    <Pin size={12} className="text-red-400" />
                   ) : null}
                 </span>
               </Link>

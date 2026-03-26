@@ -1,6 +1,7 @@
 import { pipeline, env } from '@xenova/transformers';
 
 env.allowLocalModels = false;
+let activeJobId = 0;
 
 class PipelineFactory {
   static task = null;
@@ -17,14 +18,25 @@ class PipelineFactory {
 }
 
 self.addEventListener('message', async (event) => {
-  const message = event.data;
-  let transcript = await transcribe(message.audio);
-  if (transcript === null) return;
+  const message = event.data || {};
+
+  if (message.type !== 'transcribe') {
+    return;
+  }
+
+  const jobId = typeof message.jobId === 'number' ? message.jobId : Date.now();
+  activeJobId = jobId;
+
+  const transcript = await transcribe(message.audio, jobId);
+  if (transcript === null || activeJobId !== jobId) {
+    return;
+  }
 
   self.postMessage({
     status: 'complete',
     task: 'automatic-speech-recognition',
     output: transcript,
+    jobId,
   });
 });
 
@@ -33,9 +45,17 @@ class AutomaticSpeechRecognitionPipelineFactory extends PipelineFactory {
   static model = 'Xenova/whisper-tiny.en';
 }
 
-const transcribe = async (audio) => {
+const transcribe = async (audio, jobId) => {
   const p = AutomaticSpeechRecognitionPipelineFactory;
-  let transcriber = await p.getInstance((data) => self.postMessage(data));
+  let transcriber = await p.getInstance((data) =>
+    self.postMessage({ ...data, jobId })
+  );
+
+  self.postMessage({
+    status: 'ready',
+    task: 'automatic-speech-recognition',
+    jobId,
+  });
 
   let options = {
     chunk_length_s: 30, // adjust chunk size in seconds as needed
@@ -47,6 +67,7 @@ const transcribe = async (audio) => {
       status: 'error',
       task: 'automatic-speech-recognition',
       output: error,
+      jobId,
     });
     return null;
   });

@@ -1,29 +1,51 @@
 import { useWorker } from './useWhisper';
-import { useCallback, useState, useMemo } from 'react';
+import { useCallback, useMemo, useRef, useState } from 'react';
 
 export function useTranscriber() {
-  const [output, setOutput] = useState();
+  const [output, setOutput] = useState<string | undefined>();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isModelLoading, setIsModelLoading] = useState(false);
   const [modelLoadingProgress, setModelLoadingProgress] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  const activeJobIdRef = useRef<number | null>(null);
+  const jobCounterRef = useRef(0);
 
-  const webWorker = useWorker((event) => {
+  const { postMessage } = useWorker((event) => {
     const message = event.data;
+
+    if (typeof message?.jobId === 'number') {
+      const isActiveJob = activeJobIdRef.current === message.jobId;
+      if (!isActiveJob && message.status !== 'progress') {
+        return;
+      }
+    }
+
     switch (message.status) {
       case 'progress':
+        setIsModelLoading(true);
         setModelLoadingProgress(message.progress);
         break;
       case 'update':
         break;
       case 'complete':
-        setOutput(message.output.text);
+        setOutput(message.output?.text);
+        setError(null);
         setIsProcessing(false);
+        setIsModelLoading(false);
+        activeJobIdRef.current = null;
         break;
       case 'ready':
-        setIsModelLoading(true);
+        setIsModelLoading(false);
         break;
       case 'error':
+        setError(
+          message.output instanceof Error
+            ? message.output.message
+            : 'Transcription failed. Please try again.'
+        );
         setIsProcessing(false);
+        setIsModelLoading(false);
+        activeJobIdRef.current = null;
         break;
       case 'done':
         break;
@@ -34,12 +56,16 @@ export function useTranscriber() {
 
   const onInputChange = useCallback(() => {
     setOutput(undefined);
+    setError(null);
   }, []);
 
   const start = useCallback(
     async (audioData: AudioBuffer | undefined) => {
       if (audioData) {
+        const nextJobId = ++jobCounterRef.current;
+        activeJobIdRef.current = nextJobId;
         setOutput(undefined);
+        setError(null);
         setIsProcessing(true);
         let audio;
         if (audioData.numberOfChannels === 2) {
@@ -56,10 +82,10 @@ export function useTranscriber() {
           audio = audioData.getChannelData(0);
         }
 
-        webWorker?.postMessage({ audio });
+        postMessage({ type: 'transcribe', audio, jobId: nextJobId });
       }
     },
-    [webWorker]
+    [postMessage]
   );
 
   const transcriber = useMemo(() => {
@@ -70,6 +96,7 @@ export function useTranscriber() {
       modelLoadingProgress,
       start,
       output,
+      error,
     };
   }, [
     onInputChange,
@@ -78,6 +105,7 @@ export function useTranscriber() {
     modelLoadingProgress,
     start,
     output,
+    error,
   ]);
 
   return transcriber;

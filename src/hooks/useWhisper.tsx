@@ -1,25 +1,76 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 
 export interface MessageEventHandler {
   (event: MessageEvent): void;
 }
 
-export function useWorker(messageEventHandler: MessageEventHandler) {
-  const [worker] = useState(() => createWorker(messageEventHandler));
-  return worker;
+export interface WhisperWorkerControls {
+  postMessage: (payload: unknown) => void;
+  restartWorker: () => void;
+  terminateWorker: () => void;
 }
 
-function createWorker(messageEventHandler: MessageEventHandler): Worker | null {
-  if (typeof window === 'undefined') return null;
+export function useWorker(messageEventHandler: MessageEventHandler) {
+  const workerRef = useRef<Worker | null>(null);
+  const handlerRef = useRef<MessageEventHandler>(messageEventHandler);
 
-  const worker = new Worker(
-    new URL('../lib/worker/worker.js', import.meta.url),
-    {
-      type: 'module',
+  useEffect(() => {
+    handlerRef.current = messageEventHandler;
+  }, [messageEventHandler]);
+
+  const createAndAttachWorker = useCallback(() => {
+    if (typeof window === 'undefined') {
+      return null;
     }
+
+    const worker = new Worker(
+      new URL('../lib/worker/worker.js', import.meta.url),
+      {
+        type: 'module',
+      }
+    );
+
+    worker.addEventListener('message', (event) => {
+      handlerRef.current(event);
+    });
+
+    workerRef.current = worker;
+    return worker;
+  }, []);
+
+  const terminateWorker = useCallback(() => {
+    if (workerRef.current) {
+      workerRef.current.terminate();
+      workerRef.current = null;
+    }
+  }, []);
+
+  const restartWorker = useCallback(() => {
+    terminateWorker();
+    createAndAttachWorker();
+  }, [createAndAttachWorker, terminateWorker]);
+
+  const postMessage = useCallback(
+    (payload: unknown) => {
+      if (!workerRef.current) {
+        createAndAttachWorker();
+      }
+
+      workerRef.current?.postMessage(payload);
+    },
+    [createAndAttachWorker]
   );
 
-  worker.addEventListener('message', messageEventHandler);
+  useEffect(() => {
+    createAndAttachWorker();
+    return () => {
+      terminateWorker();
+    };
+  }, [createAndAttachWorker, terminateWorker]);
 
-  return worker;
+  return {
+    postMessage,
+    restartWorker,
+    terminateWorker,
+  } satisfies WhisperWorkerControls;
 }
