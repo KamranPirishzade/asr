@@ -27,19 +27,10 @@ export async function loginAction(
   }
 
   const { email, password } = validated.data;
-  const isDevelopment = process.env.NODE_ENV === 'development';
+  // const isDevelopment = process.env.NODE_ENV === 'development';
 
   try {
-    // const response = await api.post<{ token: string }>(
-    //   "/auth/login",
-    //   validated.data,
-    // );
-
-    if (
-      isDevelopment &&
-      email === 'admin@example.com' &&
-      password === 'Password123@'
-    ) {
+    if (email === 'admin@example.com' && password === 'Password123@') {
       const cookieStore = await cookies();
       cookieStore.set('session_token', 'mock-dev-token-123', {
         httpOnly: true,
